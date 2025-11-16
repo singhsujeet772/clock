@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Job Dashboard</title>
+
+<style>
+    body {
+        font-family: Arial;
+        padding: 20px;
+    }
+    select {
+        padding: 10px;
+        font-size: 16px;
+        margin-bottom: 20px;
+        width: 300px;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+    }
+    table, th, td {
+        border: 1px solid #ddd;
+    }
+    th {
+        background: #f4f4f4;
+        padding: 10px;
+    }
+    td {
+        padding: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>Elucidata Job Dashboard</h2>
+
+<!-- Dropdown -->
+<select id="jobDropdown">
+    <option value="">Select Job Title</option>
+</select>
+
+<!-- Table to show job data -->
+<div id="jobData"></div>
+
+<script>
+// 🔗 STEP: Paste your published Google Sheet CSV link here
+const sheetURL = "https://docs.google.com/spreadsheets/d/1HT_JQ8OJnfoS5eeAPIdfDVkANY1F8eN1U3KRhK-Y-vg/edit?gid=1608490492#gid=1608490492";
+
+// Fetch & Parse CSV data
+async function loadSheet() {
+    const response = await fetch(sheetURL);
+    const csvText = await response.text();
+    
+    const rows = csvText.split("\n").map(r => r.split(","));
+
+    const headers = rows[0];     // First row = column names
+    const dataRows = rows.slice(1); // Rest = data
+
+    populateDropdown(dataRows, headers);
+}
+
+// Create dropdown from Job Titles
+function populateDropdown(dataRows, headers) {
+    const dropdown = document.getElementById("jobDropdown");
+
+    dataRows.forEach(row => {
+        const jobTitle = row[1]; // Column index 1 = JOB TITLE
+
+        if (jobTitle && jobTitle.trim() !== "") {
+            const option = document.createElement("option");
+            option.value = row.join("||"); // store all row data
+            option.textContent = jobTitle;
+            dropdown.appendChild(option);
+        }
+    });
+
+    dropdown.addEventListener("change", function () {
+        showJobData(this.value, headers);
+    });
+}
+
+// Display job details in a table
+function showJobData(rowString, headers) {
+    const container = document.getElementById("jobData");
+    
+    if (!rowString) {
+        container.innerHTML = "";
+        return;
+    }
+
+    const row = rowString.split("||");
+
+    let html = `<table>`;
+    html += `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
+    html += `<tr>${row.map(value => `<td>${value}</td>`).join("")}</tr>`;
+    html += `</table>`;
+
+    container.innerHTML = html;
+}
+
+loadSheet();
+</script>
+
+</body>
+</html>
